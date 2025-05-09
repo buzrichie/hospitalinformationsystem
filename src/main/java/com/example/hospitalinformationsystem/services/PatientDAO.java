@@ -1,5 +1,6 @@
 package com.example.hospitalinformationsystem.services;
 
+import com.example.hospitalinformationsystem.Exceptions.PatientNotFoundException;
 import com.example.hospitalinformationsystem.models.Patient;
 import com.example.hospitalinformationsystem.utils.DatabaseConnection;
 import com.example.hospitalinformationsystem.utils.PatientValidator;
@@ -30,7 +31,11 @@ public class PatientDAO {
             System.out.println("Patient added successfully.");
             return rowsAffected > 0;
 
-        } catch (SQLException e) {
+        }catch (SQLIntegrityConstraintViolationException e) {
+            System.err.println("Error: Patient with this PatientNumber already exists.");
+            return false;
+        }
+        catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
@@ -55,7 +60,8 @@ public class PatientDAO {
                 patients.add(patient);
             }
 
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             e.printStackTrace();
         }
 
@@ -67,7 +73,8 @@ public class PatientDAO {
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+            Patient spatient = getPatientById(patient.getPatientNumber());
+            if (spatient == null) {throw new PatientNotFoundException("Patient "+ patient.getPatientNumber()+" not found.");}
             stmt.setString(1, patient.getName());
             stmt.setString(2, patient.getSurname());
             stmt.setString(3, patient.getAddress());
@@ -89,7 +96,8 @@ public class PatientDAO {
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+            Patient patient = getPatientById(patientNumber);
+            if (patient == null) {throw new PatientNotFoundException("Patient "+ patientNumber+" not found.");}
             stmt.setString(1, patientNumber);
             int rowsAffected = stmt.executeUpdate();
             System.out.println("Patient deleted successfully.");
