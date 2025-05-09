@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class DatabaseConnection {
 
     // Database credentials
-    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/HospitalInformationSystem";  // Change this to your DB URL
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/HospitalInformationSystem";
     private static final String USERNAME = "root";
     private static final String PASSWORD = "root";
 
@@ -17,7 +17,6 @@ public class DatabaseConnection {
 
         try {
             connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
-            System.out.println("Connection to MySQL database established!");
         } catch (SQLException e) {
             System.out.println("Error connecting to database: " + e.getMessage());
         }
