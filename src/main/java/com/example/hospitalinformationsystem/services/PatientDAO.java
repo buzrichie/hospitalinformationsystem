@@ -2,6 +2,7 @@ package com.example.hospitalinformationsystem.services;
 
 import com.example.hospitalinformationsystem.models.Patient;
 import com.example.hospitalinformationsystem.utils.DatabaseConnection;
+import com.example.hospitalinformationsystem.utils.PatientValidator;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,11 +10,15 @@ import java.util.List;
 
 public class PatientDAO {
 
-    public void addPatient(Patient patient) {
+    public boolean addPatient(Patient patient) {
         String sql = "INSERT INTO Patient (PatientNumber, Name, Surname, Address, TelephoneNumber) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            if (!PatientValidator.isValid(patient)) {
+                throw new IllegalArgumentException("Invalid patient data");
+            }
 
             stmt.setString(1, patient.getPatientNumber());
             stmt.setString(2, patient.getName());
@@ -21,11 +26,13 @@ public class PatientDAO {
             stmt.setString(4, patient.getAddress());
             stmt.setString(5, patient.getTelephoneNumber());
 
-            stmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
             System.out.println("Patient added successfully.");
+            return rowsAffected > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -55,7 +62,7 @@ public class PatientDAO {
         return patients;
     }
 
-    public void updatePatient(Patient patient) {
+    public boolean updatePatient(Patient patient) {
         String sql = "UPDATE Patient SET Name=?, Surname=?, Address=?, TelephoneNumber=? WHERE PatientNumber=?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -67,27 +74,55 @@ public class PatientDAO {
             stmt.setString(4, patient.getTelephoneNumber());
             stmt.setString(5, patient.getPatientNumber());
 
-            stmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
             System.out.println("Patient updated successfully.");
+            return rowsAffected > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
-    public void deletePatient(String patientNumber) {
+    public boolean deletePatient(String patientNumber) {
         String sql = "DELETE FROM Patient WHERE PatientNumber=?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, patientNumber);
-            stmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
             System.out.println("Patient deleted successfully.");
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Patient getPatientById(String patientNumber) {
+        String sql = "SELECT * FROM Patient WHERE PatientNumber=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, patientNumber);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Patient(
+                            rs.getString("PatientNumber"),
+                            rs.getString("Name"),
+                            rs.getString("Surname"),
+                            rs.getString("Address"),
+                            rs.getString("TelephoneNumber")
+                    );
+                }
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        return null;
     }
 }
-
