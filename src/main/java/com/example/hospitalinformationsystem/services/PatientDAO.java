@@ -103,7 +103,11 @@ public class PatientDAO {
             System.out.println("Patient deleted successfully.");
             return rowsAffected > 0;
 
-        } catch (SQLException e) {
+        }catch (PatientNotFoundException e){
+            System.err.println(e.getMessage());
+            return false;
+        }
+        catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
